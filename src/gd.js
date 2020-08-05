@@ -473,7 +473,7 @@ async function real_copy ({ source, target, name, min_size, update, dncnr, not_t
   const record = db.prepare('select * from task where source=? and target=?').get(source, target)
   if (record) {
     const copied = db.prepare('select fileid from copied where taskid=?').all(record.id).map(v => v.fileid)
-    const choice = is_server ? 'continue' : await user_choose()
+    const choice = (is_server || argv.yes) ? 'continue' : await user_choose()
     if (choice === 'exit') {
       return console.log('Exitting')
     } else if (choice === 'continue') {
@@ -631,6 +631,7 @@ async function copy_file (id, parent, use_sa, limit, task_id) {
     }
     try {
       const { data } = await axins.post(url, { parents: [parent] }, config)
+      gtoken.flaged = false
       return data
     } catch (err) {
       retry++
@@ -643,9 +644,14 @@ async function copy_file (id, parent, use_sa, limit, task_id) {
         throw new Error(FILE_EXCEED_MSG)
       }
       if (use_sa && message && message.toLowerCase().includes('rate limit')) {
-        SA_TOKENS = SA_TOKENS.filter(v => v.gtoken !== gtoken)
-        if (!SA_TOKENS.length) SA_TOKENS = get_sa_batch()
-        console.log('Usage Stats，number of remaining service account accounts available：', SA_TOKENS.length)
+        if (gtoken.flaged) {
+          SA_TOKENS = SA_TOKENS.filter(v => v.gtoken !== gtoken)
+          if (!SA_TOKENS.length) SA_TOKENS = get_sa_batch()
+          console.log('This account triggers the usage limit twice in a row, and the remaining SAs are：', SA_TOKENS.length)
+        } else {
+          console.log('This account triggers the usage limit and has been marked. If the next request is normal, it will be unmarked, otherwise the SA will be removed')
+          gtoken.flaged = true
+        }
       }
     }
   }
@@ -659,6 +665,7 @@ async function copy_file (id, parent, use_sa, limit, task_id) {
 }
 
 async function create_folders ({ source, old_mapping, folders, root, task_id, service_account }) {
+  if (argv.dncf) return {} // do not copy folders
   if (!Array.isArray(folders)) throw new Error('folders must be Array:' + folders)
   const mapping = old_mapping || {}
   mapping[source] = root
@@ -846,4 +853,4 @@ function print_progress (msg) {
   }
 }
 
-module.exports = { ls_folder, count, validate_fid, copy, dedupe, copy_file, gen_count_body, real_copy, get_name_by_id, get_info_by_id }
+module.exports = { ls_folder, count, validate_fid, copy, dedupe, copy_file, gen_count_body, real_copy, get_name_by_id, get_info_by_id, get_access_token, get_sa_token, walk_and_save }
