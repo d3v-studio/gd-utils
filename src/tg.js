@@ -26,16 +26,16 @@ function send_help (chat_id) {
   const text = `<pre>[Using help]
 command ｜ Description
 =====================
-/help | Back to this article
+/help | To view instructions
 =====================
-/count shareID [-u] | Return sourceID file statistics
-sourceID can be the google drive sharing URL itself，It can also be a shared ID。If you add -u at the end，Ignore the previous record and force it to be obtained online，Suitable for shared links that are updated after a while。
+/count FolderID [-u] | Calculate Size of the Given Link
+。If you add -u at the end，Ignore the previous record and force it to be obtained online
 =====================
-/copy sourceID targetID [-u] | Copy the sourceID file and destinationID (a new folder will be created)
-If destinantionID is not filled, it will be copied to the default location (set in config.js）。
+/copy sourceID destinationID [-u] | Copy from source to destination(a new folder will be created)
+If DestinationID is  not give.default folderID from config.js is taken as destination。
 If bookmark is set，Then bookmark will be used as destinationID。
-If -u is added at the end，Ignore the local cache and force the source folder information to be obtained online。
-After the command starts to execute, it will reply the taskID of this task。
+If -u is added at the end，information about the process is obtained online。
+When the command is run,it wil spit out the Task ID。
 =====================
 /task | Return the info about the corresponding task
 Example：
@@ -46,7 +46,6 @@ Example：
 /task rm 7 | Delete task record number 7
 =====================
 /bm [action] [alias] [target] | bookmark，Add common destination folderID
-After entering the URL, it will appear below the two buttons "Document Statistics" and "Start Copying"，Easy to copy to frequently used locations。
 Example：
 /bm | Return to favorites of all settings
 /bm set movie folder-id | Add folder-id to favorites，It is set as Movie
